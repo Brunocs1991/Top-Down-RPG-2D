@@ -1,0 +1,55 @@
+# Unity - Gerações automáticas
+[Ll]ibrary/
+[Tt]emp/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+
+# Archivos da Unity Cache
+obj/
+*.csproj
+*.unityproj
+*.sln
+*.user
+*.userprefs
+
+
+# VS Code
+.vscode/
+
+# Rider
+.idea/
+*.sln.iml
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Arquivos do sistema Unity que não devem ser versionados
+*.pidb
+*.booproj
+
+# Builds específicas
+*.apk
+*.aab
+*.exe
+*.app
+*.ipa
+
+# Git-lfs (opcional: se usar imagens grandes/sons/etc)
+# *.psd
+# *.mp3
+# *.wav
+# *.fbx
+# *.png
+# *.jpg
+
+# Unity Collaborate
+.collab/
+
+# Auto gerados por testes locais
+*.tmproj
+*.dwlt
+UserSettings/*
