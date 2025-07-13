@@ -3,11 +3,19 @@ using UnityEngine.InputSystem; // Necessário para usar o novo Input System
 
 public class Player : MonoBehaviour
 {
-    public float speed = 5f;
+    [Header("Configurações")]
+    [SerializeField] private float speed = 5f;
+    
     private Rigidbody2D rig;
-    private Vector2 direction;
-
+    private Vector2 _direction;
     private PlayerInputActions inputActions;
+
+    // Property melhorada com set privado para controle
+    public Vector2 Direction 
+    { 
+        get { return _direction; } 
+        private set { _direction = value; } 
+    }
 
     private void Awake()
     {
@@ -16,25 +24,52 @@ public class Player : MonoBehaviour
 
     private void OnEnable()
     {
-        inputActions.Enable();
+        inputActions?.Enable();
 
         // Escuta quando a ação de movimento é executada
-        inputActions.Player.Move.performed += ctx => direction = ctx.ReadValue<Vector2>();
-        inputActions.Player.Move.canceled += ctx => direction = Vector2.zero;
+        inputActions.Player.Move.performed += OnMovePerformed;
+        inputActions.Player.Move.canceled += OnMoveCanceled;
     }
 
     private void OnDisable()
     {
-        inputActions.Disable();
+        inputActions?.Disable();
     }
 
     private void Start()
     {
         rig = GetComponent<Rigidbody2D>();
+        
+        // Validação de componente
+        if (rig == null)
+        {
+            Debug.LogError($"[{nameof(Player)}] Rigidbody2D não encontrado!");
+            enabled = false;
+        }
     }
 
     private void FixedUpdate()
     {
-        rig.MovePosition(rig.position + direction * speed * Time.fixedDeltaTime);
+        if (rig != null)
+        {
+            rig.MovePosition(rig.position + Direction * speed * Time.fixedDeltaTime);
+        }
+    }
+    
+    // Callbacks separados para melhor organização
+    private void OnMovePerformed(InputAction.CallbackContext context)
+    {
+        Direction = context.ReadValue<Vector2>();
+    }
+    
+    private void OnMoveCanceled(InputAction.CallbackContext context)
+    {
+        Direction = Vector2.zero;
+    }
+    
+    // Método público para parar o movimento
+    public void StopMovement()
+    {
+        Direction = Vector2.zero;
     }
 }
