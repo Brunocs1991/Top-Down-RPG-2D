@@ -3,20 +3,38 @@ using UnityEngine.InputSystem; // Necessário para usar o novo Input System
 
 public class Player : MonoBehaviour
 {
-    [Header("Configurações")]
+    #region Variables
+    [Header("Settings")]
     [SerializeField] private float speed = 5f;
-    
+    [SerializeField] private float runSpeed = 8f;
+
+    private float initialSpeed;
     private Rigidbody2D rig;
     private Vector2 _direction;
+    private bool _isRunning;
+    private bool _isRolling;
     private PlayerInputActions inputActions;
+    #endregion
 
-    // Property melhorada com set privado para controle
+    #region Properties
     public Vector2 Direction 
     { 
         get { return _direction; } 
         private set { _direction = value; } 
     }
+    public bool IsRunning
+    {
+        get { return _isRunning; }
+        private set { _isRunning = value; }
+    }
+    public bool IsRolling
+    {
+        get { return _isRolling; }
+        private set { _isRolling = value; }
+    }
+    #endregion
 
+    #region Unity Methods
     private void Awake()
     {
         inputActions = new PlayerInputActions();
@@ -24,11 +42,7 @@ public class Player : MonoBehaviour
 
     private void OnEnable()
     {
-        inputActions?.Enable();
-
-        // Escuta quando a ação de movimento é executada
-        inputActions.Player.Move.performed += OnMovePerformed;
-        inputActions.Player.Move.canceled += OnMoveCanceled;
+        EnableInputActions();
     }
 
     private void OnDisable()
@@ -39,24 +53,44 @@ public class Player : MonoBehaviour
     private void Start()
     {
         rig = GetComponent<Rigidbody2D>();
-        
-        // Validação de componente
+        initialSpeed = speed;
         if (rig == null)
         {
-            Debug.LogError($"[{nameof(Player)}] Rigidbody2D não encontrado!");
+            Debug.LogError($"[{nameof(Player)}] Rigidbody2D not found!");
             enabled = false;
         }
     }
 
     private void FixedUpdate()
     {
-        if (rig != null)
-        {
-            rig.MovePosition(rig.position + Direction * speed * Time.fixedDeltaTime);
-        }
+        MovePlayer();
     }
-    
-    // Callbacks separados para melhor organização
+    #endregion
+
+    #region Movement
+    public void StopMovement()
+    {
+        Direction = Vector2.zero;
+    }
+
+    private void OnMoveAction()
+    {
+        inputActions.Player.Move.performed += OnMovePerformed;
+        inputActions.Player.Move.canceled += OnMoveCanceled;
+    }
+
+    private void OnSprintAction()
+    {
+        inputActions.Player.Sprint.performed += OnSprintPerformed;
+        inputActions.Player.Sprint.canceled += OnSprintCanceled;
+    }
+
+    private void OnRollingAction()
+    {
+        inputActions.Player.Roll.performed += OnRollingPerformed;
+        inputActions.Player.Roll.canceled += OnRollingCanceled;
+    }
+
     private void OnMovePerformed(InputAction.CallbackContext context)
     {
         Direction = context.ReadValue<Vector2>();
@@ -66,10 +100,43 @@ public class Player : MonoBehaviour
     {
         Direction = Vector2.zero;
     }
-    
-    // Método público para parar o movimento
-    public void StopMovement()
+
+    private void OnSprintPerformed(InputAction.CallbackContext context)
     {
-        Direction = Vector2.zero;
+        speed = runSpeed;
+        IsRunning = true;
     }
+    
+    private void OnSprintCanceled(InputAction.CallbackContext context)
+    {
+        speed = initialSpeed;
+        IsRunning = false;
+    }
+
+    private void OnRollingPerformed(InputAction.CallbackContext context)
+    {
+        IsRolling = true;
+    }
+    
+    private void OnRollingCanceled(InputAction.CallbackContext context)
+    {
+        IsRolling = false;
+    }
+
+    private void MovePlayer()
+    {
+        if (rig != null)
+        {
+            rig.MovePosition(rig.position + Direction * speed * Time.fixedDeltaTime);
+        }
+    }
+
+    private void EnableInputActions()
+    {
+        inputActions?.Enable();
+        OnMoveAction();
+        OnSprintAction();
+        OnRollingAction();
+    }
+    #endregion
 }
